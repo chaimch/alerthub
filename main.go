@@ -14,52 +14,41 @@
 package main
 
 import (
+	"flag"
 	"log"
 
 	"github.com/chaimcode/alerthub/manager"
 )
 
 func main() {
-	log.Print("Starting event suppressor...")
+	flag.Parse()
+
 	suppressor := manager.NewSuppressor()
 	defer suppressor.Close()
-	go suppressor.Dispatch()
-	log.Println("Done.")
 
 	log.Println("Starting event aggregator...")
 	aggregator := manager.NewAggregator()
 	defer aggregator.Close()
 
-	/*
-		summaryReqs & closed
-	*/
-	summarizer := new(manager.SummaryDispatcher)
+	summarizer := manager.NewSummaryDispatcher()
 	go aggregator.Dispatch(summarizer)
 	log.Println("Done.")
 
-	// done := make(chan bool)
-	// go func() {
-	// 	rules := manager.AggregationRules{
-	// 		&manager.AggregationRule{
-	// 			Filters: manager.Filters{manager.NewFilter("service", "discovery")},
-	// 		},
-	// 	}
+	// BEGIN EXAMPLE CODE - replace with config loading later.
+	done := make(chan bool)
+	go func() {
+		rules := manager.AggregationRules{
+			&manager.AggregationRule{
+				Filters: manager.Filters{manager.NewFilter("service", "discovery")},
+			},
+		}
 
-	// 	aggregator.SetRules(rules)
+		aggregator.SetRules(rules)
 
-	// 	events := manager.Events{
-	// 		&manager.Event{
-	// 			Payload: map[string]string{
-	// 				"service": "discovery",
-	// 			},
-	// 		},
-	// 	}
-
-	// 	aggregator.Receive(events)
-
-	// 	done <- true
-	// }()
-	// <-done
+		done <- true
+	}()
+	<-done
+	// END EXAMPLE CODE
 
 	log.Println("Running summary dispatcher...")
 	summarizer.Dispatch(suppressor)
