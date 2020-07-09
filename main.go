@@ -15,6 +15,8 @@ package main
 
 import (
 	"log"
+
+	"github.com/chaimcode/alerthub/manager"
 )
 
 func main() {
@@ -32,7 +34,7 @@ func main() {
 		3. suppressionSummaryReqs, 镇压小结请求
 		4. isInhibitedReqs
 	*/
-	suppressor := NewSuppressor()
+	suppressor := manager.NewSuppressor()
 	defer suppressor.Close()
 	/*
 		dispatch 逻辑
@@ -58,13 +60,13 @@ func main() {
 		3. rulesRequests
 		4. closed
 	*/
-	aggregator := NewAggregator()
+	aggregator := manager.NewAggregator()
 	defer aggregator.Close()
 
 	/*
 		summaryReqs & closed
 	*/
-	summarizer := new(SummaryDispatcher)
+	summarizer := new(manager.SummaryDispatcher)
 	/*
 		聚合器转发
 		1. 如果有聚合请求则 aggregate(req, s)
@@ -77,16 +79,16 @@ func main() {
 	// 发送一个事件
 	done := make(chan bool)
 	go func() {
-		rules := AggregationRules{
-			&AggregationRule{
-				Filters: Filters{NewFilter("service", "discovery")},
+		rules := manager.AggregationRules{
+			&manager.AggregationRule{
+				Filters: manager.Filters{manager.NewFilter("service", "discovery")},
 			},
 		}
 
 		aggregator.SetRules(rules)
 
-		events := Events{
-			&Event{
+		events := manager.Events{
+			&manager.Event{
 				Payload: map[string]string{
 					"service": "discovery",
 				},
