@@ -20,7 +20,7 @@ import (
 func main() {
 	log.Print("Starting event suppressor...")
 	/*
-		镇压者包含内容(相当于后来的静默)：
+		镇压者包含内容(相当于后来的抑制)：
 		1. Suppressions, 镇压内容, 多个
 			1. id
 			2. Description, 描述
@@ -51,13 +51,30 @@ func main() {
 	log.Println("Done.")
 
 	log.Println("Starting event aggregator...")
+	/*
+		聚合器
+		1. Aggregates {int: AggregationInstance}
+		2. aggRequests
+		3. rulesRequests
+		4. closed
+	*/
 	aggregator := NewAggregator()
 	defer aggregator.Close()
 
+	/*
+		summaryReqs & closed
+	*/
 	summarizer := new(SummaryDispatcher)
+	/*
+		聚合器转发
+		1. 如果有聚合请求则 aggregate(req, s)
+		2. 如果有规则替换请求则 replaceRules(rules)
+		3. 收拾聚合的事件, 取出当前事件之前需要聚合的事件
+	*/
 	go aggregator.Dispatch(summarizer)
 	log.Println("Done.")
 
+	// 发送一个事件
 	done := make(chan bool)
 	go func() {
 		rules := AggregationRules{

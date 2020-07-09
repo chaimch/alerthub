@@ -129,6 +129,15 @@ type aggregateEventsRequest struct {
 	Response chan *aggregateEventsResponse
 }
 
+/*
+聚合逻辑, 一个 event 可能根据 rule 聚合出多个组:
+1. 计算指纹, 唯一的 ID 标识
+2. 判断 event 与 rule 的 labelName & labelVal 是否完全相等
+	1. 相等则表示需要聚合
+	2. 存在则取出, 否则则插入 aggregation
+	3. 插入当前事件
+	4. 发送当前的事件
+*/
 func (a *Aggregator) aggregate(r *aggregateEventsRequest, s SummaryReceiver) {
 	log.Println("aggregating", *r)
 	for _, element := range r.Events {
