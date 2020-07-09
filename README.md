@@ -1,1 +1,4 @@
-# alerthub
+alert_manager
+=============
+
+Prometheus Alert Manager
